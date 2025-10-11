@@ -43,7 +43,7 @@ ApplicationWindow {
         }
 
         Text {
-            text: "Switch workspaces in niri to see updates in real-time"
+            text: "Click on a workspace to switch to it"
             font.pixelSize: 10
             color: "#666"
             font.italic: true
@@ -61,9 +61,28 @@ ApplicationWindow {
                 height: 80
                 color: model.isFocused ? "#4CAF50" :
                        model.isActive ? "#8BC34A" : "#E0E0E0"
-                border.color: model.isUrgent ? "red" : "transparent"
-                border.width: 3
+                border.color: model.isUrgent ? "red" : "#999"
+                border.width: model.isUrgent ? 3 : 1
                 radius: 5
+
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    hoverEnabled: true
+
+                    onEntered: {
+                        parent.opacity = 0.8
+                    }
+
+                    onExited: {
+                        parent.opacity = 1.0
+                    }
+
+                    onClicked: {
+                        console.log("Switching to workspace", model.index, "(ID:", model.id + ")")
+                        niri.focusWorkspace(model.index)
+                    }
+                }
 
                 ColumnLayout {
                     anchors.fill: parent

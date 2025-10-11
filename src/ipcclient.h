@@ -15,6 +15,7 @@ public:
 
     bool connect();
     bool isConnected() const;
+    bool sendRequest(const QJsonObject &request);
 
 signals:
     void connected();
@@ -27,8 +28,8 @@ private slots:
     void onSocketError();
 
 private:
-    bool sendRequest(const QJsonObject &request);
-
-    QLocalSocket *m_socket = nullptr;
+    QLocalSocket *m_eventSocket = nullptr;
+    QLocalSocket *m_requestSocket = nullptr;
     QByteArray m_readBuffer;
+    QString m_socketPath;
 };

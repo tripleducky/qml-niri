@@ -18,6 +18,10 @@ public:
     Q_INVOKABLE bool connect();
     Q_INVOKABLE bool isConnected() const;
 
+    Q_INVOKABLE void focusWorkspace(int index);
+    Q_INVOKABLE void focusWorkspaceById(quint64 id);
+    Q_INVOKABLE void focusWorkspaceByName(const QString &name);
+
 signals:
     void connected();
     void disconnected();
@@ -25,6 +29,8 @@ signals:
     void rawEventReceived(const QJsonObject &event);
 
 private:
+    void sendAction(const QJsonObject &action);
+
     IPCClient *m_ipcClient = nullptr;
     WorkspaceModel *m_workspaceModel = nullptr;
 };

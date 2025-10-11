@@ -1,5 +1,6 @@
 #include "niri.h"
 #include <QDebug>
+#include <QJsonObject>
 
 Niri::Niri(QObject *parent)
     : QObject(parent)
@@ -33,4 +34,50 @@ bool Niri::connect()
 bool Niri::isConnected() const
 {
     return m_ipcClient->isConnected();
+}
+
+void Niri::focusWorkspace(int index)
+{
+    QJsonObject reference;
+    reference["Index"] = index;
+
+    QJsonObject action;
+    action["FocusWorkspace"] = QJsonObject{{"reference", reference}};
+
+    sendAction(action);
+}
+
+void Niri::focusWorkspaceById(quint64 id)
+{
+    QJsonObject reference;
+    reference["Id"] = QJsonValue::fromVariant(id);
+
+    QJsonObject action;
+    action["FocusWorkspace"] = QJsonObject{{"reference", reference}};
+
+    sendAction(action);
+}
+
+void Niri::focusWorkspaceByName(const QString &name)
+{
+    QJsonObject reference;
+    reference["Name"] = name;
+
+    QJsonObject action;
+    action["FocusWorkspace"] = QJsonObject{{"reference", reference}};
+
+    sendAction(action);
+}
+
+void Niri::sendAction(const QJsonObject &action)
+{
+    if (!isConnected()) {
+        qWarning() << "Cannot send action: not connected to niri";
+        return;
+    }
+
+    QJsonObject request;
+    request["Action"] = action;
+
+    m_ipcClient->sendRequest(request);
 }
