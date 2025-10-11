@@ -12,6 +12,7 @@ add_library(niriplugin SHARED
     src/niri.cpp
     src/plugin.cpp
     src/workspacemodel.cpp
+    src/windowmodel.cpp
 )
 
 target_link_libraries(niriplugin

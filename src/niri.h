@@ -3,17 +3,25 @@
 #include <QObject>
 #include "ipcclient.h"
 #include "workspacemodel.h"
+#include "windowmodel.h"
 
 class Niri : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(WorkspaceModel* workspaces READ workspaces CONSTANT)
+    Q_PROPERTY(WindowModel* windows READ windows CONSTANT)
+    Q_PROPERTY(QString focusedWindowTitle READ focusedWindowTitle NOTIFY focusedWindowTitleChanged)
+    Q_PROPERTY(QString focusedWindowAppId READ focusedWindowAppId NOTIFY focusedWindowAppIdChanged)
 
 public:
     explicit Niri(QObject *parent = nullptr);
     ~Niri();
 
     WorkspaceModel* workspaces() const { return m_workspaceModel; }
+    WindowModel* windows() const { return m_windowModel; }
+
+    QString focusedWindowTitle() const;
+    QString focusedWindowAppId() const;
 
     Q_INVOKABLE bool connect();
     Q_INVOKABLE bool isConnected() const;
@@ -22,15 +30,22 @@ public:
     Q_INVOKABLE void focusWorkspaceById(quint64 id);
     Q_INVOKABLE void focusWorkspaceByName(const QString &name);
 
+    Q_INVOKABLE void focusWindow(quint64 id);
+    Q_INVOKABLE void closeWindow(quint64 id);
+    Q_INVOKABLE void closeWindowOrFocused(quint64 id = 0);
+
 signals:
     void connected();
     void disconnected();
     void errorOccurred(const QString &error);
     void rawEventReceived(const QJsonObject &event);
+    void focusedWindowTitleChanged();
+    void focusedWindowAppIdChanged();
 
 private:
     void sendAction(const QJsonObject &action);
 
     IPCClient *m_ipcClient = nullptr;
     WorkspaceModel *m_workspaceModel = nullptr;
+    WindowModel *m_windowModel = nullptr;
 };
