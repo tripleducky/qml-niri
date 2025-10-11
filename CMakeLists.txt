@@ -11,6 +11,7 @@ add_library(niriplugin SHARED
     src/ipcclient.cpp
     src/niri.cpp
     src/plugin.cpp
+    src/workspacemodel.cpp
 )
 
 target_link_libraries(niriplugin

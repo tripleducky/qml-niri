@@ -40,6 +40,7 @@ bool IPCClient::connect()
         return false;
     }
 
+    qDebug() << "Listening to niri event stream ...";
     QByteArray data = "\"EventStream\"\n";
     qint64 written = m_socket->write(data);
     if (written != data.size()) {
