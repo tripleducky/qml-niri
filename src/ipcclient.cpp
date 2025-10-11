@@ -1,29 +1,29 @@
-#include "niriclient.h"
+#include "ipcclient.h"
 #include <QJsonObject>
 #include <QJsonDocument>
 #include <QProcessEnvironment>
 #include <QDebug>
 
-NiriClient::NiriClient(QObject *parent)
+IPCClient::IPCClient(QObject *parent)
     : QObject(parent)
     , m_socket(new QLocalSocket(this))
 {
     QObject::connect(m_socket, &QLocalSocket::readyRead,
-                     this, &NiriClient::onReadyRead);
+                     this, &IPCClient::onReadyRead);
     QObject::connect(m_socket, &QLocalSocket::errorOccurred,
-                     this, &NiriClient::onSocketError);
+                     this, &IPCClient::onSocketError);
     QObject::connect(m_socket, &QLocalSocket::disconnected,
-                     this, &NiriClient::disconnected);
+                     this, &IPCClient::disconnected);
 }
 
-NiriClient::~NiriClient()
+IPCClient::~IPCClient()
 {
     if (m_socket->isOpen()) {
         m_socket->close();
     }
 }
 
-bool NiriClient::connect()
+bool IPCClient::connect()
 {
     QString socketPath = QProcessEnvironment::systemEnvironment().value("NIRI_SOCKET");
 
@@ -52,12 +52,12 @@ bool NiriClient::connect()
     return true;
 }
 
-bool NiriClient::isConnected() const
+bool IPCClient::isConnected() const
 {
     return m_socket && m_socket->state() == QLocalSocket::ConnectedState;
 }
 
-bool NiriClient::sendRequest(const QJsonObject &request)
+bool IPCClient::sendRequest(const QJsonObject &request)
 {
     QJsonDocument doc(request);
     QByteArray data = doc.toJson(QJsonDocument::Compact) + "\n";
@@ -72,7 +72,7 @@ bool NiriClient::sendRequest(const QJsonObject &request)
     return true;
 }
 
-void NiriClient::onReadyRead()
+void IPCClient::onReadyRead()
 {
     m_readBuffer.append(m_socket->readAll());
 
@@ -108,7 +108,7 @@ void NiriClient::onReadyRead()
     }
 }
 
-void NiriClient::onSocketError()
+void IPCClient::onSocketError()
 {
     emit errorOccurred(m_socket->errorString());
 }

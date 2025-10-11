@@ -1,6 +1,6 @@
 #include <QQmlExtensionPlugin>
 #include <QQmlEngine>
-#include "niriclient.h"
+#include "niri.h"
 
 class NiriPlugin : public QQmlExtensionPlugin
 {
@@ -11,7 +11,7 @@ public:
     void registerTypes(const char *uri) override
     {
         Q_ASSERT(uri == QLatin1String("Niri"));
-        qmlRegisterType<NiriClient>(uri, 0, 1, "NiriClient");
+        qmlRegisterType<Niri>(uri, 0, 1, "Niri");
     }
 };
 

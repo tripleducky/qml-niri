@@ -8,8 +8,9 @@ set(CMAKE_AUTOMOC ON)
 find_package(Qt6 REQUIRED COMPONENTS Core Qml)
 
 add_library(niriplugin SHARED
+    src/ipcclient.cpp
+    src/niri.cpp
     src/plugin.cpp
-    src/niriclient.cpp
 )
 
 target_link_libraries(niriplugin

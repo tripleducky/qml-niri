@@ -11,4 +11,4 @@ clean:
 	rm -rf build
 
 test:
-	QML_IMPORT_PATH=$$PWD/build /usr/lib/qt6/bin/qml test/test_client.qml
+	QML_IMPORT_PATH=$$PWD/build /usr/lib/qt6/bin/qml test/test_events.qml

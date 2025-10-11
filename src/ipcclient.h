@@ -5,15 +5,15 @@
 #include <QSocketNotifier>
 #include <QJsonDocument>
 
-class NiriClient : public QObject
+class IPCClient : public QObject
 {
     Q_OBJECT
 
 public:
-    explicit NiriClient(QObject *parent = nullptr);
-    ~NiriClient();
+    explicit IPCClient(QObject *parent = nullptr);
+    ~IPCClient();
 
-    Q_INVOKABLE bool connect();
+    bool connect();
     bool isConnected() const;
 
 signals:
