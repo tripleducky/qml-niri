@@ -25,8 +25,8 @@ The [DankMaterialShell](https://github.com/AvengeMedia/DankMaterialShell) projec
 
 - Qt 6 (Core and QML modules)
 - CMake 3.16 or newer
-- A running niri compositor with a set `NIRI_SOCKET` environment variable
 - C++17 compatible compiler
+- A recent version of niri (tested with v25.08)
 
 
 ## Disclaimer
@@ -86,6 +86,12 @@ Item {
     }
 }
 ```
+
+> [!NOTE]
+> This requires the `NIRI_SOCKET` environment variable to be set with the path to a
+> valid Unix socket.
+> See the [niri IPC documentation](https://github.com/YaLTeR/niri/wiki/IPC) for details.
+
 
 ### Working with workspaces
 
@@ -253,9 +259,8 @@ Pull requests to improve the testing situation, add unit tests, etc., are very w
   Also, confirm that you're using Qt 6, and not older versions. You can do this with `qml --version`. If the Qt 6 binary is not on your `$PATH` (e.g. on Void Linux it is at `/usr/lib/qt6/bin/qml`), you can symlink it as `qml6` somewhere on your `$PATH`.
 
 - *Connection failed*:
-  Verify that the `NIRI_SOCKET` environment variable is set and points to a valid socket.
-  It should be something like `/run/user/<name>/niri.wayland-1.1856.sock`. Note that
-  this is affected by the value of `XDG_RUNTIME_DIR`.
+  Ensure niri is actually running. 😄
+  Otherwise, verify that the `NIRI_SOCKET` environment variable is set and points to a valid socket. It should be something like `/run/user/<name>/niri.wayland-1.1856.sock`. Note that this is affected by the value of `XDG_RUNTIME_DIR`.
 
 
 ## License
