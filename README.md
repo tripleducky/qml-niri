@@ -71,7 +71,7 @@ Alternatively, you can set the `QML_IMPORT_PATH` environment variable to include
 Import the plugin and create a Niri instance:
 
 ```qml
-import QtQuick 2.15
+import QtQuick
 import Niri 0.1
 
 Item {
