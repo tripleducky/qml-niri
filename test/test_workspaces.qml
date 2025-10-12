@@ -36,10 +36,28 @@ ApplicationWindow {
         anchors.fill: parent
         anchors.margins: 10
 
-        Text {
-            id: statusText
-            text: "Connecting..."
-            font.bold: true
+        // Status header
+        RowLayout {
+            Layout.fillWidth: true
+
+            Text {
+                id: statusText
+                text: "Connecting..."
+                font.bold: true
+            }
+
+            Item { Layout.fillWidth: true }
+
+            Text {
+                text: "Total workspaces: " + niri.workspaces.count
+                font.pixelSize: 12
+            }
+        }
+
+        Rectangle {
+            Layout.fillWidth: true
+            height: 1
+            color: "#CCC"
         }
 
         Text {
@@ -49,12 +67,14 @@ ApplicationWindow {
             font.italic: true
         }
 
+        // All workspaces list
         ListView {
             Layout.fillWidth: true
             Layout.fillHeight: true
 
             model: niri.workspaces
             spacing: 5
+            clip: true
 
             delegate: Rectangle {
                 width: ListView.view.width
@@ -80,7 +100,7 @@ ApplicationWindow {
 
                     onClicked: {
                         console.log("Switching to workspace", model.index, "(ID:", model.id + ")")
-                        niri.focusWorkspace(model.index)
+                        niri.focusWorkspaceById(model.id)
                     }
                 }
 
@@ -138,22 +158,6 @@ ApplicationWindow {
                         color: "#888"
                     }
                 }
-            }
-        }
-
-        Rectangle {
-            Layout.fillWidth: true
-            height: 1
-            color: "#CCC"
-        }
-
-        RowLayout {
-            Item { Layout.fillWidth: true }
-
-            Text {
-                text: "Total workspaces: " + niri.workspaces.count
-                font.pixelSize: 12
-                font.bold: true
             }
         }
     }
