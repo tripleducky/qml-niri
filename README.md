@@ -7,9 +7,9 @@ A QML plugin for interacting with the [niri](https://github.com/YaLTeR/niri) Way
 
 I really like the niri compositor/WM, but there are no good integrations for it for building UI widgets, status bars, etc. There are several options mentioned in the [awesome-niri](https://github.com/Vortriz/awesome-niri) list, but none of them are great IMO.
 
-[QuickShell](https://git.outfoxxed.me/outfoxxed/quickshell) and Qt Quick stand out above the rest, but it currently only supports Hyprland. There is interest in adding [support for niri](https://github.com/quickshell-mirror/quickshell/issues/47), but the feature is blocked by the author's desire for compositors to implement a set of [generic Wayland protocols](https://github.com/quickshell-mirror/shell-protocols), which is in progress for niri. This is understandable, as it would avoid projects like QuickShell having to add support for custom IPC protocols of each compositor, but in the meantime, niri users are left without a good solution. If, and when, QuickShell officially supports niri via these generic protocols, there will likely be little need for qml-niri to exist.
+[Quickshell](https://quickshell.outfoxxed.me/) and Qt Quick stand out above the rest, but it currently only supports Hyprland. There is interest in adding [support for niri](https://github.com/quickshell-mirror/quickshell/issues/47), but the feature is blocked by the author's desire for compositors to implement a set of [generic Wayland protocols](https://github.com/quickshell-mirror/shell-protocols), which is in progress for niri. This is understandable, as it would avoid projects like Quickshell having to add support for custom IPC protocols of each compositor, but in the meantime, niri users are left without a good solution. If, and when, Quickshell officially supports niri via these generic protocols, there will likely be little need for qml-niri to exist.
 
-The [DankMaterialShell](https://github.com/AvengeMedia/DankMaterialShell) project uses QuickShell and integrates with niri, but [this is done by shelling out to `niri` commands](https://github.com/AvengeMedia/DankMaterialShell/blob/a17343f40e2c2788d775aef08e55f73ce6e20ae2/Services/NiriService.qml), which is not ideal. It arguably simplifies the implementation by using QML, but connecting to the niri IPC socket directly would have less overhead, and this can only be done from C++. DMS is also much too complex and fancy for my personal needs, which is why I decided to not use it.
+The [DankMaterialShell](https://github.com/AvengeMedia/DankMaterialShell) project uses Quickshell and integrates with niri, but [this is done by shelling out to `niri` commands](https://github.com/AvengeMedia/DankMaterialShell/blob/a17343f40e2c2788d775aef08e55f73ce6e20ae2/Services/NiriService.qml), which is not ideal. It arguably simplifies the implementation by using QML, but connecting to the niri IPC socket directly would have less overhead, and this can only be done from C++. DMS is also much too complex and fancy for my personal needs, which is why I decided to not use it.
 </details>
 
 
@@ -249,6 +249,101 @@ Pull requests to improve the testing situation, add unit tests, etc., are very w
 - `rawEventReceived(event)` - Emitted for all IPC events
 - `focusedWindowTitleChanged()` - Emitted when focused window title changes
 - `focusedWindowAppIdChanged()` - Emitted when focused window app ID changes
+
+
+## Quickshell integration
+
+This project started because I wanted to integrate niri with [Quickshell](https://quickshell.outfoxxed.me/). So here is an example of a simple bar that showcases a niri workspaces switcher and the currently focused window title:
+
+<details>
+  <summary>Show</summary>
+
+```qml
+import Quickshell
+import QtQuick
+import Niri 0.1
+
+ShellRoot {
+    PanelWindow {
+        anchors {
+            top: true
+            left: true
+            right: true
+        }
+        implicitHeight: 30
+        color: "#1C1F22"
+
+        Niri {
+            id: niri
+            Component.onCompleted: connect()
+
+            onConnected: console.log("Connected to niri")
+            onErrorOccurred: function(error) {
+                console.error("Niri error:", error)
+            }
+        }
+
+        Row {
+            spacing: 10
+            anchors {
+                left: parent.left
+                leftMargin: 5
+                verticalCenter: parent.verticalCenter
+            }
+
+            Row {
+                spacing: 2
+
+                Repeater {
+                    model: niri.workspaces
+
+                    Rectangle {
+                        visible: index < 11
+                        width: 30
+                        height: 20
+                        color: model.isFocused ? "#106DAA" :
+                               model.isActive ? "#377B86" : "#222225"
+                        border.color: model.isUrgent ? "red" : "#16181A"
+                        border.width: 2
+                        radius: 3
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: model.name || model.index
+                            font.family: "Barlow Medium"
+                            color: model.isFocused || model.isActive ? "white" : "#89919A"
+                            font.pixelSize: 14
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: niri.focusWorkspaceById(model.id)
+                            cursorShape: Qt.PointingHandCursor
+                        }
+                    }
+                }
+            }
+
+            Text {
+                text: niri.focusedWindowTitle
+                font.family: "Barlow Medium"
+                font.pixelSize: 16
+                color: "#89919A"
+            }
+        }
+    }
+}
+```
+</details>
+
+Save this as a `.qml` file somewhere on your filesystem, and run `quickshell --path /path/to/file.qml` to see it in action.
+
+Assuming you have the [Barlow font](https://tribby.com/fonts/barlow/) installed, it
+should look something like this:
+
+![Quickshell simple bar](/assets/quickshell-simple-bar.png)
+
+For more elaborate examples, see my [quickshell-niri](https://github.com/imiric/quickshell-niri) project.
 
 
 ## Troubleshooting
