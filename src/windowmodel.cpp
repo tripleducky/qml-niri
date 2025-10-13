@@ -234,8 +234,12 @@ void WindowModel::updateFocusedWindow()
         }
     }
 
-    if (m_focusedWindow != newFocused) {
-        m_focusedWindow = newFocused;
+    // Emit if focus changed to a different window, or if the focused window's
+    // properties changed.
+    bool shouldEmit = (m_focusedWindow != newFocused) || (newFocused != nullptr);
+    m_focusedWindow = newFocused;
+
+    if (shouldEmit) {
         emit focusedWindowChanged();
     }
 }
