@@ -17,13 +17,14 @@ The [DankMaterialShell](https://github.com/AvengeMedia/DankMaterialShell) projec
 
 - Real-time window and workspace monitoring and switching
 - Tracking of focus, urgency, layout changes, etc.
+- Application icon lookup with XDG desktop entry support
 - Event-driven updates for all compositor changes
 - Native QML integration with Qt 6
 
 
 ## Requirements
 
-- Qt 6 (Core and QML modules)
+- Qt 6 (Core, GUI, and QML modules)
 - CMake 3.16 or newer
 - C++17 compatible compiler
 - A recent version of niri (tested with v25.08)
@@ -161,6 +162,49 @@ Available window properties:
 - `isFocused`: Currently focused window
 - `isFloating`: Floating window state
 - `isUrgent`: Window urgency flag
+- `iconPath`: Absolute path to application icon (empty if not found)
+
+#### Application icons
+
+Application icons are automatically looked up using XDG desktop entries, and can be rendered like so:
+
+```qml
+ListView {
+    model: niri.windows
+    delegate: Rectangle {
+        RowLayout {
+            spacing: 5
+            
+            Image {
+                source: model.iconPath ? "file://" + model.iconPath : ""
+                sourceSize.width: 24
+                sourceSize.height: 24
+                visible: model.iconPath !== ""
+                smooth: true
+            }
+            
+            // Fallback for missing icons
+            Rectangle {
+                width: 24
+                height: 24
+                color: "#CCC"
+                visible: model.iconPath === ""
+                radius: 4
+            }
+            
+            Text {
+                text: model.title
+            }
+        }
+    }
+}
+```
+
+If an icon is not found (e.g. for AppImage, Flatpak, Snap apps), you can manually place an SVG or PNG file in a general XDG path, such as `~/.local/share/icons/hicolor/scalable/apps`. Ensure that it's named after the application ID that niri reports (check with `niri msg pick-window`). Although a lowercase string, or having the name anywhere in the file name should work as well.
+
+For example, for app ID "LibreWolf", the file `~/.local/share/icons/hicolor/scalable/apps/librewolf.svg` would be resolved.
+
+The implementation attempts to handle several path and naming variations, but it might not work in all scenarios, so a manual override is preferred over handling all scenarios correctly.
 
 ### Convenience properties
 

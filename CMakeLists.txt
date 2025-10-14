@@ -5,18 +5,20 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Core Qml)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml)
 
 add_library(niriplugin SHARED
+    src/icon.cpp
     src/ipcclient.cpp
     src/niri.cpp
     src/plugin.cpp
-    src/workspacemodel.cpp
     src/windowmodel.cpp
+    src/workspacemodel.cpp
 )
 
 target_link_libraries(niriplugin
     Qt6::Core
+    Qt6::Gui
     Qt6::Qml
 )
 

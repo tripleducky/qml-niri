@@ -153,6 +153,25 @@ ApplicationWindow {
                     spacing: 2
 
                     RowLayout {
+                        spacing: 5
+
+                        Image {
+                            source: model.iconPath ? "file://" + model.iconPath : ""
+                            sourceSize.width: 16
+                            sourceSize.height: 16
+                            visible: model.iconPath !== ""
+                            smooth: true
+                        }
+
+                        // Fallback for missing icons
+                        Rectangle {
+                            width: 16
+                            height: 16
+                            color: model.isFocused ? "#999" : "#CCC"
+                            visible: model.iconPath === ""
+                            radius: 2
+                        }
+
                         Text {
                             text: model.title || "(no title)"
                             font.bold: model.isFocused

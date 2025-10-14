@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <QDebug>
 #include <QJsonArray>
+#include "icon.h"
 #include "windowmodel.h"
 
 WindowModel::WindowModel(QObject *parent)
@@ -39,6 +40,8 @@ QVariant WindowModel::data(const QModelIndex &index, int role) const
         return win.isFloating;
     case IsUrgentRole:
         return win.isUrgent;
+    case IconPathRole:
+        return win.iconPath;
     default:
         return QVariant();
     }
@@ -55,6 +58,7 @@ QHash<int, QByteArray> WindowModel::roleNames() const
     roles[IsFocusedRole] = "isFocused";
     roles[IsFloatingRole] = "isFloating";
     roles[IsUrgentRole] = "isUrgent";
+    roles[IconPathRole] = "iconPath";
     return roles;
 }
 
@@ -210,6 +214,7 @@ Window WindowModel::parseWindow(const QJsonObject &obj)
     win.isFocused = obj["is_focused"].toBool();
     win.isFloating = obj["is_floating"].toBool();
     win.isUrgent = obj["is_urgent"].toBool();
+    win.iconPath = IconLookup::lookup(win.appId);
 
     return win;
 }

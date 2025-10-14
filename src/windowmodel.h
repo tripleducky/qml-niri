@@ -12,6 +12,7 @@ struct Window {
     bool isFocused;
     bool isFloating;
     bool isUrgent;
+    QString iconPath;
 };
 
 class WindowModel : public QAbstractListModel
@@ -29,7 +30,8 @@ public:
         WorkspaceIdRole,
         IsFocusedRole,
         IsFloatingRole,
-        IsUrgentRole
+        IsUrgentRole,
+        IconPathRole
     };
 
     explicit WindowModel(QObject *parent = nullptr);
