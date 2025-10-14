@@ -17,7 +17,7 @@ The [DankMaterialShell](https://github.com/AvengeMedia/DankMaterialShell) projec
 
 - Real-time window and workspace monitoring and switching
 - Tracking of focus, urgency, layout changes, etc.
-- Application icon lookup with XDG desktop entry support
+- Application icon lookup via XDG desktop entries
 - Event-driven updates for all compositor changes
 - Native QML integration with Qt 6
 
@@ -208,15 +208,19 @@ The implementation attempts to handle several path and naming variations, but it
 
 ### Convenience properties
 
-Access the currently focused window directly:
+Access the currently focused window and all of its properties:
 
 ```qml
 Text {
-    text: niri.focusedWindowTitle || "No focused window"
+    text: niri.focusedWindow?.title ?? "No focused window"
 }
 
 Text {
-    text: "App: " + (niri.focusedWindowAppId || "none")
+    text: "App: " + (niri.focusedWindow?.appId ?? "none")
+}
+
+Text {
+    text: "PID: " + (niri.focusedWindow?.pid ?? -1)
 }
 ```
 
@@ -273,8 +277,7 @@ Pull requests to improve the testing situation, add unit tests, etc., are very w
 *Properties:*
 - `workspaces`: WorkspaceModel - List of all workspaces
 - `windows`: WindowModel - List of all windows
-- `focusedWindowTitle`: string - Title of focused window
-- `focusedWindowAppId`: string - App ID of focused window
+- `focusedWindow`: Window - Currently focused window (null if none)
 
 *Methods:*
 - `connect()`: bool - Connect to niri IPC socket
@@ -291,8 +294,7 @@ Pull requests to improve the testing situation, add unit tests, etc., are very w
 - `disconnected()` - Emitted on disconnection
 - `errorOccurred(error)` - Emitted on error
 - `rawEventReceived(event)` - Emitted for all IPC events
-- `focusedWindowTitleChanged()` - Emitted when focused window title changes
-- `focusedWindowAppIdChanged()` - Emitted when focused window app ID changes
+- `focusedWindowChanged()` - Emitted when focused window changes or its properties update
 
 
 ## Quickshell integration
@@ -369,7 +371,7 @@ ShellRoot {
             }
 
             Text {
-                text: niri.focusedWindowTitle
+                text: niri.focusedWindow?.title ?? ""
                 font.family: "Barlow Medium"
                 font.pixelSize: 16
                 color: "#89919A"

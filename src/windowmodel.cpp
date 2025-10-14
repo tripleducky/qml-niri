@@ -9,6 +9,11 @@ WindowModel::WindowModel(QObject *parent)
 {
 }
 
+WindowModel::~WindowModel()
+{
+    qDeleteAll(m_windows);
+}
+
 int WindowModel::rowCount(const QModelIndex &parent) const
 {
     if (parent.isValid())
@@ -21,27 +26,27 @@ QVariant WindowModel::data(const QModelIndex &index, int role) const
     if (!index.isValid() || index.row() >= m_windows.count())
         return QVariant();
 
-    const Window &win = m_windows.at(index.row());
+    const Window *win = m_windows.at(index.row());
 
     switch (role) {
     case IdRole:
-        return QVariant::fromValue(win.id);
+        return QVariant::fromValue(win->id);
     case TitleRole:
-        return win.title;
+        return win->title;
     case AppIdRole:
-        return win.appId;
+        return win->appId;
     case PidRole:
-        return win.pid;
+        return win->pid;
     case WorkspaceIdRole:
-        return QVariant::fromValue(win.workspaceId);
+        return QVariant::fromValue(win->workspaceId);
     case IsFocusedRole:
-        return win.isFocused;
+        return win->isFocused;
     case IsFloatingRole:
-        return win.isFloating;
+        return win->isFloating;
     case IsUrgentRole:
-        return win.isUrgent;
+        return win->isUrgent;
     case IconPathRole:
-        return win.iconPath;
+        return win->iconPath;
     default:
         return QVariant();
     }
@@ -95,6 +100,7 @@ void WindowModel::handleEvent(const QJsonObject &event)
 void WindowModel::handleWindowsChanged(const QJsonArray &windows)
 {
     beginResetModel();
+    qDeleteAll(m_windows);
     m_windows.clear();
 
     for (const QJsonValue &value : windows) {
@@ -110,8 +116,8 @@ void WindowModel::handleWindowsChanged(const QJsonArray &windows)
 
 void WindowModel::handleWindowOpenedOrChanged(const QJsonObject &windowObj)
 {
-    Window window = parseWindow(windowObj);
-    int idx = findWindowIndex(window.id);
+    Window *window = parseWindow(windowObj);
+    int idx = findWindowIndex(window->id);
 
     if (idx == -1) {
         // New window
@@ -120,17 +126,19 @@ void WindowModel::handleWindowOpenedOrChanged(const QJsonObject &windowObj)
         endInsertRows();
         emit countChanged();
     } else {
-        // Existing window changed
+        // Replace existing window pointer. This deallocates and reallocates even for
+        // minor changes (e.g. title updates), but avoids property-by-property copying.
+        delete m_windows[idx];
         m_windows[idx] = window;
         QModelIndex modelIdx = index(idx);
         emit dataChanged(modelIdx, modelIdx);
     }
 
     // If this window is focused, update all other windows
-    if (window.isFocused) {
+    if (window->isFocused) {
         for (int i = 0; i < m_windows.count(); ++i) {
-            if (m_windows[i].id != window.id && m_windows[i].isFocused) {
-                m_windows[i].isFocused = false;
+            if (m_windows[i]->id != window->id && m_windows[i]->isFocused) {
+                m_windows[i]->isFocused = false;
                 QModelIndex modelIdx = index(i);
                 emit dataChanged(modelIdx, modelIdx, {IsFocusedRole});
             }
@@ -147,10 +155,10 @@ void WindowModel::handleWindowClosed(quint64 id)
         return;
     }
 
-    bool wasFocused = m_windows[idx].isFocused;
+    bool wasFocused = m_windows[idx]->isFocused;
 
     beginRemoveRows(QModelIndex(), idx, idx);
-    m_windows.removeAt(idx);
+    delete m_windows.takeAt(idx);
     endRemoveRows();
 
     emit countChanged();
@@ -165,9 +173,9 @@ void WindowModel::handleWindowFocusChanged(const QJsonValue &idValue)
     quint64 newFocusedId = idValue.isNull() ? 0 : idValue.toInteger();
 
     for (int i = 0; i < m_windows.count(); ++i) {
-        bool shouldBeFocused = (m_windows[i].id == newFocusedId);
-        if (m_windows[i].isFocused != shouldBeFocused) {
-            m_windows[i].isFocused = shouldBeFocused;
+        bool shouldBeFocused = (m_windows[i]->id == newFocusedId);
+        if (m_windows[i]->isFocused != shouldBeFocused) {
+            m_windows[i]->isFocused = shouldBeFocused;
             QModelIndex modelIdx = index(i);
             emit dataChanged(modelIdx, modelIdx, {IsFocusedRole});
         }
@@ -184,8 +192,8 @@ void WindowModel::handleWindowUrgencyChanged(quint64 id, bool urgent)
         return;
     }
 
-    if (m_windows[idx].isUrgent != urgent) {
-        m_windows[idx].isUrgent = urgent;
+    if (m_windows[idx]->isUrgent != urgent) {
+        m_windows[idx]->isUrgent = urgent;
         QModelIndex modelIdx = index(idx);
         emit dataChanged(modelIdx, modelIdx, {IsUrgentRole});
     }
@@ -198,23 +206,23 @@ void WindowModel::handleWindowLayoutsChanged(const QJsonArray &changes)
     Q_UNUSED(changes);
 }
 
-Window WindowModel::parseWindow(const QJsonObject &obj)
+Window* WindowModel::parseWindow(const QJsonObject &obj)
 {
-    Window win;
-    win.id = obj["id"].toInteger();
-    win.title = obj["title"].toString();
-    win.appId = obj["app_id"].toString();
+    Window *win = new Window(this);
+    win->id = obj["id"].toInteger();
+    win->title = obj["title"].toString();
+    win->appId = obj["app_id"].toString();
 
     QJsonValue pidValue = obj["pid"];
-    win.pid = pidValue.isNull() ? -1 : pidValue.toInt();
+    win->pid = pidValue.isNull() ? -1 : pidValue.toInt();
 
     QJsonValue workspaceIdValue = obj["workspace_id"];
-    win.workspaceId = workspaceIdValue.isNull() ? 0 : workspaceIdValue.toInteger();
+    win->workspaceId = workspaceIdValue.isNull() ? 0 : workspaceIdValue.toInteger();
 
-    win.isFocused = obj["is_focused"].toBool();
-    win.isFloating = obj["is_floating"].toBool();
-    win.isUrgent = obj["is_urgent"].toBool();
-    win.iconPath = IconLookup::lookup(win.appId);
+    win->isFocused = obj["is_focused"].toBool();
+    win->isFloating = obj["is_floating"].toBool();
+    win->isUrgent = obj["is_urgent"].toBool();
+    win->iconPath = IconLookup::lookup(win->appId);
 
     return win;
 }
@@ -222,7 +230,7 @@ Window WindowModel::parseWindow(const QJsonObject &obj)
 int WindowModel::findWindowIndex(quint64 id) const
 {
     for (int i = 0; i < m_windows.count(); ++i) {
-        if (m_windows[i].id == id)
+        if (m_windows[i]->id == id)
             return i;
     }
     return -1;
@@ -232,9 +240,9 @@ void WindowModel::updateFocusedWindow()
 {
     Window *newFocused = nullptr;
 
-    for (Window &win : m_windows) {
-        if (win.isFocused) {
-            newFocused = &win;
+    for (Window *win : m_windows) {
+        if (win->isFocused) {
+            newFocused = win;
             break;
         }
     }

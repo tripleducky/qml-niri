@@ -28,9 +28,7 @@ Niri::Niri(QObject *parent)
 
     // Forward focused window changes
     QObject::connect(m_windowModel, &WindowModel::focusedWindowChanged,
-                     this, &Niri::focusedWindowTitleChanged);
-    QObject::connect(m_windowModel, &WindowModel::focusedWindowChanged,
-                     this, &Niri::focusedWindowAppIdChanged);
+                     this, &Niri::focusedWindowChanged);
 }
 
 Niri::~Niri()
@@ -80,24 +78,17 @@ void Niri::focusWorkspaceByName(const QString &name)
     sendAction(action);
 }
 
-QString Niri::focusedWindowTitle() const
-{
-    Window *focused = m_windowModel->focusedWindow();
-    return focused ? focused->title : QString();
-}
-
-QString Niri::focusedWindowAppId() const
-{
-    Window *focused = m_windowModel->focusedWindow();
-    return focused ? focused->appId : QString();
-}
-
 void Niri::focusWindow(quint64 id)
 {
     QJsonObject action;
     action["FocusWindow"] = QJsonObject{{"id", QJsonValue::fromVariant(id)}};
 
     sendAction(action);
+}
+
+Window* Niri::focusedWindow() const
+{
+    return m_windowModel->focusedWindow();
 }
 
 void Niri::closeWindow(quint64 id)

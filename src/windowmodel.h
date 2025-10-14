@@ -2,8 +2,26 @@
 
 #include <QAbstractListModel>
 #include <QJsonObject>
+#include <QObject>
 
-struct Window {
+class Window : public QObject
+{
+    Q_OBJECT
+    Q_PROPERTY(quint64 id MEMBER id CONSTANT)
+    Q_PROPERTY(QString title MEMBER title CONSTANT)
+    Q_PROPERTY(QString appId MEMBER appId CONSTANT)
+    Q_PROPERTY(qint32 pid MEMBER pid CONSTANT)
+    Q_PROPERTY(quint64 workspaceId MEMBER workspaceId CONSTANT)
+    Q_PROPERTY(bool isFocused MEMBER isFocused CONSTANT)
+    Q_PROPERTY(bool isFloating MEMBER isFloating CONSTANT)
+    Q_PROPERTY(bool isUrgent MEMBER isUrgent CONSTANT)
+    Q_PROPERTY(QString iconPath MEMBER iconPath CONSTANT)
+
+public:
+    explicit Window(QObject *parent = nullptr)
+        : QObject(parent), id(0), pid(-1), workspaceId(0),
+          isFocused(false), isFloating(false), isUrgent(false) {}
+
     quint64 id;
     QString title;
     QString appId;
@@ -35,6 +53,7 @@ public:
     };
 
     explicit WindowModel(QObject *parent = nullptr);
+    ~WindowModel();
 
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
@@ -57,10 +76,10 @@ private:
     void handleWindowUrgencyChanged(quint64 id, bool urgent);
     void handleWindowLayoutsChanged(const QJsonArray &changes);
 
-    Window parseWindow(const QJsonObject &obj);
+    Window* parseWindow(const QJsonObject &obj);
     int findWindowIndex(quint64 id) const;
     void updateFocusedWindow();
 
-    QList<Window> m_windows;
+    QList<Window*> m_windows;
     Window *m_focusedWindow = nullptr;
 };

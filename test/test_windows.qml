@@ -31,8 +31,8 @@ ApplicationWindow {
             statusText.color = "red"
         }
 
-        onFocusedWindowTitleChanged: {
-            console.log("Focused window title changed:", niri.focusedWindowTitle)
+        onFocusedWindowChanged: {
+            console.log("Focused window changed:", niri.focusedWindow?.title)
         }
     }
 
@@ -85,15 +85,15 @@ ApplicationWindow {
                 }
 
                 Text {
-                    text: "Title: " + (niri.focusedWindowTitle || "(none)")
+                    text: "Title: " + (niri.focusedWindow?.title ?? "(none)")
                     font.pixelSize: 12
-                    font.italic: !niri.focusedWindowTitle
+                    font.italic: !niri.focusedWindow
                 }
 
                 Text {
-                    text: "App ID: " + (niri.focusedWindowAppId || "(none)")
+                    text: "App ID: " + (niri.focusedWindow?.appId ?? "(none)")
                     font.pixelSize: 12
-                    font.italic: !niri.focusedWindowAppId
+                    font.italic: !niri.focusedWindow
                 }
             }
         }
