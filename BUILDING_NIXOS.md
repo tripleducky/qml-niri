@@ -2,6 +2,23 @@
 
 This document provides instructions for building qml-niri on NixOS.
 
+## Quick Start (TL;DR)
+
+```bash
+# 1. Build the plugin
+nix develop      # or: nix-shell
+just build
+
+# 2. Use it (no copying needed!)
+export QML_IMPORT_PATH=$PWD/build
+qml6 test/test_workspaces.qml
+
+# 3. Make it permanent (add to ~/.bashrc)
+echo 'export QML_IMPORT_PATH="$HOME/Downloads/qml-niri/build:$QML_IMPORT_PATH"' >> ~/.bashrc
+```
+
+**On NixOS, you never manually copy files to `/usr/lib` or system directories!** The filesystem is immutable. Use `QML_IMPORT_PATH` or install via Nix configuration instead.
+
 ## The `syncqt` Problem
 
 On NixOS, you might encounter an error like:
@@ -42,9 +59,22 @@ nix-shell
 just build
 ```
 
-### Option 3: Install to your NixOS system
+### Option 3: Use QML_IMPORT_PATH (Simplest for Development)
 
-You can add this to your NixOS configuration:
+After building, you don't need to copy anything. Just set the import path:
+
+```bash
+export QML_IMPORT_PATH=$PWD/build
+```
+
+Add this to your shell profile (`~/.bashrc` or `~/.zshrc`) for persistence:
+```bash
+export QML_IMPORT_PATH="$HOME/Downloads/qml-niri/build:$QML_IMPORT_PATH"
+```
+
+### Option 4: Install to your NixOS system
+
+Add this to `/etc/nixos/configuration.nix`:
 
 ```nix
 { config, pkgs, ... }:
@@ -54,12 +84,16 @@ let
     pname = "qml-niri";
     version = "0.1.0";
 
-    src = pkgs.fetchFromGitHub {
-      owner = "imiric";
-      repo = "qml-niri";
-      rev = "main";  # or a specific commit/tag
-      sha256 = "0000000000000000000000000000000000000000000000000000";  # Update this
-    };
+    # For local development
+    src = /home/andre/Downloads/qml-niri;
+    
+    # Or fetch from GitHub
+    # src = pkgs.fetchFromGitHub {
+    #   owner = "imiric";
+    #   repo = "qml-niri";
+    #   rev = "main";
+    #   sha256 = pkgs.lib.fakeSha256;  # Replace with actual hash
+    # };
 
     nativeBuildInputs = with pkgs; [
       cmake
@@ -92,6 +126,15 @@ in
   };
 }
 ```
+
+Then rebuild:
+```bash
+sudo nixos-rebuild switch
+```
+
+### Option 5: Install via Home Manager
+
+See `HOME_MANAGER_EXAMPLE.nix` in this repository for a complete example.
 
 ## Enabling Flakes (if not already enabled)
 
